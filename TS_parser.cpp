@@ -4,6 +4,7 @@
 #include "tsTransportStreamHeader.h"
 #include "tsPESPacketHeader.h"
 #include "tsPESAssembler.h"
+#include "tsMPG123Decoder.h"
 
 #include <cstdio>
 #include <cstdlib>
@@ -67,6 +68,19 @@ int main()
   // PES assembler for audio PID = 136
   xPES_Assembler PES_Assembler;
   PES_Assembler.Init(AudioPID);
+
+  xMPG123Decoder MPG123Decoder;
+
+  if(!MPG123Decoder.Init("PID136.wav"))
+  {
+    printf("ERROR: cannot initialize mpg123 decoder\n");
+
+    fclose(VIDEO_File);
+    fclose(RESULT_File);
+    fclose(TS_File);
+
+    return EXIT_FAILURE;
+  }
 
   // number of packet
   int32_t TS_PacketId = 0;
@@ -172,6 +186,19 @@ int main()
         if(PES_Data != nullptr && DataLen > 0)
         {
           fwrite(PES_Data, 1, DataLen, RESULT_File);
+
+          if(!MPG123Decoder.Decode(PES_Data, DataLen))
+          {
+            printf("ERROR: mpg123 decoding failed\n");
+
+            MPG123Decoder.Close();
+
+            fclose(VIDEO_File);
+            fclose(RESULT_File);
+            fclose(TS_File);
+
+            return EXIT_FAILURE;
+          }
         }
       }
     }
@@ -277,7 +304,7 @@ int main()
   //===========================================================================================================================================================================
   // Close files
   //===========================================================================================================================================================================
-
+  MPG123Decoder.Close();
   fclose(VIDEO_File);
   fclose(RESULT_File);
   fclose(TS_File);
