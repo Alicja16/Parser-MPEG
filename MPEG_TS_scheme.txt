@@ -1,71 +1,39 @@
-MPEG-TS parser
-├── S1: Transport Stream Header
-│   └── parsowanie 4-bajtowego nagłówka TS
-│
-├── S2: Adaptation Field
-│   └── parsowanie AF, PCR, stuffing, extension itd.
-│
-├── S3: PES
-│   ├── składanie PES z payloadów TS
-│   └── parsowanie nagłówka PES, PTS, DTS
-│
-├── S4: Elementary Stream extraction
-│   ├── wyciąganie fonii do pliku
-│   └── wyciąganie wizji do .264
-│
-└── S5: Network receiver
-    └── odbiór danych MPEG-TS z sieci
-
-
-transport_packet()
-├── sync_byte
-├── transport_error_indicator
-├── payload_unit_start_indicator
-├── transport_priority
-├── PID
-├── transport_scrambling_control
-├── adaptation_field_control
-├── continuity_counter
-├── adaptation_field(), jeśli AFC == 10 albo 11
-└── data_byte, jeśli AFC == 01 albo 11
-
-
-
-adaptation_field()
-├── adaptation_field_length
-├── discontinuity_indicator
-├── random_access_indicator
-├── elementary_stream_priority_indicator
-├── PCR_flag
-├── OPCR_flag
-├── splicing_point_flag
-├── transport_private_data_flag
-├── adaptation_field_extension_flag
-├── PCR, jeśli PCR_flag == 1
-├── OPCR, jeśli OPCR_flag == 1
-├── splice_countdown
-├── private_data
-├── adaptation_field_extension
-└── stuffing_byte
-
-
-PES_packet()
-├── packet_start_code_prefix     24 bity
-├── stream_id                     8 bitów
-├── PES_packet_length            16 bitów
-├── opcjonalny nagłówek PES
-│   ├── '10'
-│   ├── PES_scrambling_control
-│   ├── PES_priority
-│   ├── data_alignment_indicator
-│   ├── copyright
-│   ├── original_or_copy
-│   ├── PTS_DTS_flags
-│   ├── ESCR_flag
-│   ├── ES_rate_flag
-│   ├── DSM_trick_mode_flag
-│   ├── additional_copy_info_flag
-│   ├── PES_CRC_flag
-│   ├── PES_extension_flag
-│   └── PES_header_data_length
-└── PES_packet_data_byte
+example_new.ts
+    │
+    ▼
+czytanie pakietów po 188 bajtów
+    │
+    ▼
+TS packet
+    │
+    ├── TS header, 4 B
+    │       ├── sync_byte
+    │       ├── payload_unit_start_indicator
+    │       ├── PID
+    │       ├── adaptation_field_control
+    │       └── continuity_counter
+    │
+    ├── adaptation field, jeśli AFC == 2 albo AFC == 3
+    │       └── potrzebne głównie do obliczenia początku payloadu
+    │
+    └── payload, jeśli AFC == 1 albo AFC == 3
+            │
+            ▼
+      payload z PID == 136
+            │
+            ▼
+      składanie PES
+            │
+            ▼
+      gotowy PES packet
+            │
+            ├── PES header
+            │       ├── packet_start_code_prefix
+            │       ├── stream_id
+            │       ├── PES_packet_length
+            │       └── PES_header_data_length
+            │
+            └── PES_packet_data_bytes
+                    │
+                    ▼
+              zapis do PID136.mp2
