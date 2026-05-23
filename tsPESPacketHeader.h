@@ -93,6 +93,7 @@ public:
 protected:
 
   bool     xHasOptionalPESHeader() const;
+  bool     xIsTimestampValid(const uint8_t* Data, uint8_t ExpectedPrefix) const;
   uint64_t xParseTimestamp(const uint8_t* Data) const;
 
 public:

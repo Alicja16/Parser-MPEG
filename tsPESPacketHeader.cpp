@@ -61,6 +61,31 @@ bool xPES_PacketHeader::xHasOptionalPESHeader() const
   return true;
 }
 
+
+//=============================================================================================================================================================================
+
+bool xPES_PacketHeader::xIsTimestampValid(const uint8_t* Data, uint8_t ExpectedPrefix) const
+{
+  if(Data == nullptr)
+  {
+    return false;
+  }
+
+  const uint8_t Prefix = uint8_t((Data[0] & 0xF0) >> 4);
+
+  if(Prefix != ExpectedPrefix)
+  {
+    return false;
+  }
+
+  // Marker bits must be equal to 1.
+  if((Data[0] & 0x01) != 0x01) { return false; }
+  if((Data[2] & 0x01) != 0x01) { return false; }
+  if((Data[4] & 0x01) != 0x01) { return false; }
+
+  return true;
+}
+
 //=============================================================================================================================================================================
 
 uint64_t xPES_PacketHeader::xParseTimestamp(const uint8_t* Data) const
@@ -199,37 +224,55 @@ int32_t xPES_PacketHeader::Parse(const uint8_t* Input)
   }
 
   if(m_PTSDTSFlags == 0b10)
+{
+  if(HeaderBytesLeft < 5)
   {
-    if(HeaderBytesLeft < 5)
-    {
-      return NOT_VALID;
-    }
-
-    m_PTS = xParseTimestamp(Input + Offset);
-    m_HasPTS = true;
-
-    Offset += 5;
-    HeaderBytesLeft -= 5;
+    return NOT_VALID;
   }
-  else if(m_PTSDTSFlags == 0b11)
+
+  // PTS only: prefix should be '0010'
+  if(!xIsTimestampValid(Input + Offset, 0b0010))
   {
-    if(HeaderBytesLeft < 10)
-    {
-      return NOT_VALID;
-    }
-
-    m_PTS = xParseTimestamp(Input + Offset);
-    m_HasPTS = true;
-
-    Offset += 5;
-    HeaderBytesLeft -= 5;
-
-    m_DTS = xParseTimestamp(Input + Offset);
-    m_HasDTS = true;
-
-    Offset += 5;
-    HeaderBytesLeft -= 5;
+    return NOT_VALID;
   }
+
+  m_PTS = xParseTimestamp(Input + Offset);
+  m_HasPTS = true;
+
+  Offset += 5;
+  HeaderBytesLeft -= 5;
+}
+else if(m_PTSDTSFlags == 0b11)
+{
+  if(HeaderBytesLeft < 10)
+  {
+    return NOT_VALID;
+  }
+
+  // PTS when DTS is also present: prefix should be '0011'
+  if(!xIsTimestampValid(Input + Offset, 0b0011))
+  {
+    return NOT_VALID;
+  }
+
+  m_PTS = xParseTimestamp(Input + Offset);
+  m_HasPTS = true;
+
+  Offset += 5;
+  HeaderBytesLeft -= 5;
+
+  // DTS prefix should be '0001'
+  if(!xIsTimestampValid(Input + Offset, 0b0001))
+  {
+    return NOT_VALID;
+  }
+
+  m_DTS = xParseTimestamp(Input + Offset);
+  m_HasDTS = true;
+
+  Offset += 5;
+  HeaderBytesLeft -= 5;
+}
 
   // Other optional fields, such as ESCR, ES_rate, DSM_trick_mode, etc.,
   // are not parsed in detail in this stage.
