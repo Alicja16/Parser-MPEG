@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
 set(PROJECT_NAME "TS-PARSER")
 project(${PROJECT_NAME})
 
+list(APPEND CMAKE_PREFIX_PATH "C:/vcpkg/installed/x64-windows")
+find_package(mpg123 CONFIG REQUIRED)
+
 # force static runtime libraries for msvc builds
 if(MSVC)
   set(variables CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE CMAKE_CXX_FLAGS_RELWITHDEBINFO CMAKE_CXX_FLAGS_MINSIZEREL)
@@ -37,10 +40,14 @@ set(PROJECT_SOURCES
   tsPESPacketHeader.h tsPESPacketHeader.cpp
   tsPESAssembler.h tsPESAssembler.cpp
   tsMPEGAudioHeader.h tsMPEGAudioHeader.cpp
+  tsWaveWriter.h tsWaveWriter.cpp
+  tsMPG123Decoder.h tsMPG123Decoder.cpp
   TS_parser.cpp)
 
 source_group("Source Files" FILES ${PROJECT_SOURCES})
 
 add_executable(${PROJECT_NAME} ${PROJECT_SOURCES})
+
+target_link_libraries(${PROJECT_NAME} PRIVATE MPG123::libmpg123)
 
 
