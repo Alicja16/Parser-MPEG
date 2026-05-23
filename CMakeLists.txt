@@ -34,9 +34,8 @@ set(PROJECT_SOURCES
   tsTS.h
   tsTransportStreamHeader.h tsTransportStreamHeader.cpp
   tsTransportStreamAF.h tsTransportStreamAF.cpp
-  tsTransportStreamPES.h tsTransportStreamPES.cpp
-  tsElementaryStream.h tsElementaryStream.cpp
-  tsMPEGAudioHeader.h tsMPEGAudioHeader.cpp
+  tsPESPacketHeader.h tsPESPacketHeader.cpp
+  tsPESAssembler.h tsPESAssembler.cpp
   TS_parser.cpp)
 
 source_group("Source Files" FILES ${PROJECT_SOURCES})
