@@ -33,12 +33,12 @@
 class xTS_AdaptationField
 {
 protected:
-  //setup
+  // setup / derived values
   uint8_t  m_AdaptationFieldControl;
   uint32_t m_NumBytes;
   uint32_t m_StuffingBytes;
 
-  //mandatory fields
+  // mandatory fields
   uint8_t  m_AdaptationFieldLength;
   uint8_t  m_DC;
   uint8_t  m_RA;
@@ -49,54 +49,9 @@ protected:
   uint8_t  m_TP;
   uint8_t  m_EX;
 
-  //optional fields
-  // PCR =====================================================
-  // synchronizacja poprawna audio i video
-  // przeliczać PCR na sekundy,
-  // mierzyć odstępy PCR,
-  // sprawdzać regularność,
-  // analizować timing strumienia
-  uint64_t  m_PCR;
-
-  // OPCR=====================================================
-  // porównywać PCR i OPCR,
-  // wykrywać, że strumień był przetwarzany,
-  // analizować przesunięcie po remuxie
-  uint64_t  m_OPCR;
-
-  // SpliceCountdown===========================================
-  // kiedy nastąpi przełaczenie strumienia
-  int8_t   m_SpliceCountdown;
-
-  // TransportPrivate==========================================
-  // producenta sprzętu,
-  // operatora,
-  // system warunkowego dostępu,
-  // wewnętrzne metadane nadawcy
-  uint8_t   m_TransportPrivateDataLength;
-  const uint8_t* m_TransportPrivateDataPtr;
-
-  // Extension=================================================
-  uint8_t  m_AdaptationFieldExtensionLength;
-
-  // Extension flags==================================
-  uint8_t  m_LTW_flag;
-  uint8_t  m_PiecewiseRate_flag;
-  uint8_t  m_SeamlessSplice_flag;
-
-  // Legal Time Window=======================
-  // ograniczenia czasowe dostarczenia pakietów z punktu widzenia modelu buforów dekodera
-  uint8_t  m_LTW_valid_flag;
-  uint16_t m_LTW_offset;
-
-  // Piecewise Rate==========================
-  // opis modelu czasowego i przepływności widzianej przez system
-  uint32_t m_PiecewiseRate;
-
-  // Seamless Splice=========================
-  // jak wykonać przejście między fragmentami strumienia bez zaburzenia czasu dekodowania
-  uint8_t  m_SpliceType;
-  uint64_t m_DTSNextAccessUnit;
+  // optional fields parsed in this stage
+  uint64_t m_PCR;
+  uint64_t m_OPCR;
 
 public:
   void    Reset();
@@ -104,17 +59,24 @@ public:
   void    Print() const;
 
 public:
-  //mandatory fields
-  uint8_t getAdaptationFieldLength () const { return m_AdaptationFieldLength ; }
-  uint8_t getPR () const { return m_PR; }
-  uint8_t getOR () const { return m_OR; }
-  uint8_t getSF () const { return m_SF; }
-  uint8_t getTP () const { return m_TP; }
-  uint8_t getEX () const { return m_EX; }
-  //derived values
-  uint32_t getNumBytes () const { return m_NumBytes; }
-  uint32_t getStuffingBytes () const { return m_StuffingBytes; }
+  // mandatory fields
+  uint8_t getAdaptationFieldLength() const { return m_AdaptationFieldLength; }
+  uint8_t getDC() const { return m_DC; }
+  uint8_t getRA() const { return m_RA; }
+  uint8_t getSP() const { return m_SP; }
+  uint8_t getPR() const { return m_PR; }
+  uint8_t getOR() const { return m_OR; }
+  uint8_t getSF() const { return m_SF; }
+  uint8_t getTP() const { return m_TP; }
+  uint8_t getEX() const { return m_EX; }
 
+  // optional fields
+  bool     hasPCR()  const { return m_PR != 0; }
+  bool     hasOPCR() const { return m_OR != 0; }
+  uint64_t getPCR()  const { return m_PCR; }
+  uint64_t getOPCR() const { return m_OPCR; }
+
+  // derived values
+  uint32_t getNumBytes() const { return m_NumBytes; }
+  uint32_t getStuffingBytes() const { return m_StuffingBytes; }
 };
-
-//=============================================================================================================================================================================
